@@ -13,14 +13,13 @@ import java.net.URI;
 public class SimpleHttpServer {
     public static void main(String[] args) throws Exception {
         int port = 35000;
-        // ServerSocket is intentionally not closed to keep the server running
         ServerSocket serverSocket = new ServerSocket(port);
         System.out.println("Server started on port " + port);
         while (true) {
             try (Socket clientSocket = serverSocket.accept();
-                 BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                 PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
-                // Usar OutputStream para archivos binarios
+                    BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                    PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
+
                 java.io.OutputStream rawOut = clientSocket.getOutputStream();
 
                 String inputLine;
@@ -89,7 +88,6 @@ public class SimpleHttpServer {
         return response;
     }
 
-    // Serve static files as raw bytes (for HTML, CSS, JS, images, etc.)
     private static boolean serveStaticFileRaw(String path, java.io.OutputStream rawOut) {
         String basePath = "src/main/resources/public";
         File file = new File(basePath + path);
@@ -117,16 +115,23 @@ public class SimpleHttpServer {
         return true;
     }
 
-    // Detect content type by file extension
     private static String getContentType(String path) {
-        if (path.endsWith(".html")) return "text/html";
-        if (path.endsWith(".css")) return "text/css";
-        if (path.endsWith(".js")) return "application/javascript";
-        if (path.endsWith(".png")) return "image/png";
-        if (path.endsWith(".jpg") || path.endsWith(".jpeg")) return "image/jpeg";
-        if (path.endsWith(".gif")) return "image/gif";
-        if (path.endsWith(".svg")) return "image/svg+xml";
-        if (path.endsWith(".json")) return "application/json";
+        if (path.endsWith(".html"))
+            return "text/html";
+        if (path.endsWith(".css"))
+            return "text/css";
+        if (path.endsWith(".js"))
+            return "application/javascript";
+        if (path.endsWith(".png"))
+            return "image/png";
+        if (path.endsWith(".jpg") || path.endsWith(".jpeg"))
+            return "image/jpeg";
+        if (path.endsWith(".gif"))
+            return "image/gif";
+        if (path.endsWith(".svg"))
+            return "image/svg+xml";
+        if (path.endsWith(".json"))
+            return "application/json";
         return "text/plain";
     }
 
@@ -144,8 +149,8 @@ public class SimpleHttpServer {
             name = query.split("=")[1];
         }
         String response = "HTTP/1.1 200 OK\r\n" +
-                          "Content-Type: application/json\r\n\r\n" +
-                          "{\"mensaje\": \"POST Hola " + name + "\"}";
+                "Content-Type: application/json\r\n\r\n" +
+                "{\"mensaje\": \"POST Hola " + name + "\"}";
         return response;
     }
 }

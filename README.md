@@ -24,11 +24,15 @@ git clone
 ```bash
 mvn clean package
 ```
-3. Ejecutar el servidor:
+3. Directorio (Opcional):
+```bash
+cd webserver-arep/
+```
+4. Ejecutar el servidor:
 ```bash
 java -cp target/classes com.edu.esuelaing.arep.SimpleHttpServer
 ```
-4. Abrir un navegador y navegar a:
+5. Abrir un navegador y navegar a:
 ```bash
 http://localhost:35000
 ```
