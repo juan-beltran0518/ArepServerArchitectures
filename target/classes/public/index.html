@@ -1,23 +1,4 @@
-</head>
-<body>
-    <!-- ...contenido existente... -->
 
-    <h2>Probar POST /hellopost</h2>
-    <form id="postForm">
-      <input type="text" id="postname" name="name" placeholder="Tu nombre">
-      <button type="submit">Enviar POST</button>
-    </form>
-    <div id="postrespmsg"></div>
-    <script>
-    document.getElementById('postForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      let name = document.getElementById('postname').value;
-      fetch('/hellopost?name=' + encodeURIComponent(name), {method: 'POST'})
-        .then(x => x.json())
-        .then(y => document.getElementById('postrespmsg').textContent = y.mensaje)
-        .catch(() => document.getElementById('postrespmsg').textContent = 'Error en la petición');
-    });
-    </script>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -29,14 +10,33 @@
 <body>
     <div class="container">
         <h1>¡Hola desde SimpleHttpServer!</h1>
-        <form id="helloForm">
-            <label for="name">¿Cuál es tu nombre?</label><br>
-            <input type="text" id="name" name="name" placeholder="Escribe tu nombre..." required>
-            <button type="submit">Saludar</button>
-        </form>
-        <div id="response"></div>
+        <div class="forms-wrapper">
+            <form id="helloForm" class="form-block">
+                <label for="name">¿Cuál es tu nombre?</label><br>
+                <input type="text" id="name" name="name" placeholder="Escribe tu nombre..." required>
+                <button type="submit">Saludar</button>
+                <div id="response"></div>
+            </form>
+            <form id="postForm" class="form-block">
+                <label for="postname">Probar POST /hellopost</label><br>
+                <input type="text" id="postname" name="name" placeholder="Tu nombre" required>
+                <button type="submit">Enviar POST</button>
+                <div id="postrespmsg"></div>
+            </form>
+        </div>
         <img src="test-image.jpg" alt="Imagen de prueba">
     </div>
     <script src="app.js"></script>
+    <script>
+    // POST handler
+    document.getElementById('postForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      let name = document.getElementById('postname').value;
+      fetch('/hellopost?name=' + encodeURIComponent(name), {method: 'POST'})
+        .then(x => x.json())
+        .then(y => document.getElementById('postrespmsg').textContent = y.mensaje)
+        .catch(() => document.getElementById('postrespmsg').textContent = 'Error en la petición');
+    });
+    </script>
 </body>
 </html>
