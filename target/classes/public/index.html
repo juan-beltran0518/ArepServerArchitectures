@@ -25,6 +25,12 @@
             </form>
         </div>
         <img src="test-image.jpg" alt="Imagen de prueba">
+
+        <div class="code-viewer-section">
+            <div class="code-card" onclick="showCode('style')">Ver código style.css</div>
+            <div class="code-card" onclick="showCode('html')">Ver código index.html</div>
+        </div>
+        <pre id="codeDisplay" class="code-display" style="display:none;"></pre>
     </div>
     <script src="app.js"></script>
     <script>
@@ -37,6 +43,17 @@
         .then(y => document.getElementById('postrespmsg').textContent = y.mensaje)
         .catch(() => document.getElementById('postrespmsg').textContent = 'Error en la petición');
     });
+
+    // Mostrar código fuente de style.css o index.html
+    function showCode(type) {
+      let file = type === 'style' ? 'style.css' : 'index.html';
+      fetch(file)
+        .then(resp => resp.text())
+        .then(code => {
+          document.getElementById('codeDisplay').textContent = code;
+          document.getElementById('codeDisplay').style.display = 'block';
+        });
+    }
     </script>
 </body>
 </html>
