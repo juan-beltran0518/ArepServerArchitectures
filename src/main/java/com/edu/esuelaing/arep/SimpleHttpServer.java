@@ -2,13 +2,12 @@
 /*
  * Archivo: SimpleHttpServer.java
  * Descripción: Servidor HTTP simple en Java para servir archivos estáticos y manejar endpoints REST (GET y POST).
- * Autor: [Tu Nombre]
- * Fecha: [Actualizar fecha]
- *
+ * Autor: Juan sebastián Beltrán
+ * Fecha de creación: 15/08/2025
  * Funcionalidad principal:
  *  - Escucha peticiones HTTP en el puerto 35000.
  *  - Sirve archivos estáticos desde src/main/resources/public.
- *  - Expone dos endpoints REST:
+ *  - Expone dos endpoints REST: 
  *      - GET  /app/hello?name=...   → retorna saludo en JSON.
  *      - POST /hellopost?name=...   → retorna saludo en JSON.
  *  - Devuelve 404 para recursos no encontrados o rutas inválidas.
