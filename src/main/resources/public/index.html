@@ -1,14 +1,85 @@
+
+<!--
+    Archivo: index.html
+    Descripción: Interfaz web para pruebas de SimpleHttpServer en Java.
+    Incluye formularios para probar endpoints GET y POST, visualización de imagen de prueba,
+    y recuadros interactivos para mostrar el código fuente de los archivos style.css e index.html.
+    Autor: Juan sebastián Beltrán
+    Fecha de creación: 15/08/2025
+-->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba SimpleHttpServer</title>
+    <!--
+        Vincula la hoja de estilos principal para la apariencia visual de la página.
+    -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- ...contenido existente... -->
+    <!--
+        Contenedor principal que centra y da formato a todo el contenido de la página.
+    -->
+    <div class="container">
+        <!-- Título principal de la página -->
+        <h1>¡Hola desde SimpleHttpServer!</h1>
 
-    <h2>Probar POST /hellopost</h2>
-    <form id="postForm">
-      <input type="text" id="postname" name="name" placeholder="Tu nombre">
-      <button type="submit">Enviar POST</button>
-    </form>
-    <div id="postrespmsg"></div>
+        <!--
+            Sección de formularios para probar los endpoints del servidor.
+            Ambos formularios están alineados y estilizados para una mejor experiencia de usuario.
+        -->
+        <div class="forms-wrapper">
+            <!--
+                Formulario para probar el endpoint GET /app/hello
+                Envía el nombre ingresado y muestra la respuesta del servidor.
+            -->
+            <form id="helloForm" class="form-block">
+                <label for="name">¿Cuál es tu nombre?</label><br>
+                <input type="text" id="name" name="name" placeholder="Escribe tu nombre..." required>
+                <button type="submit">Saludar</button>
+                <!-- Área donde se muestra la respuesta del servidor al hacer GET -->
+                <div id="response"></div>
+            </form>
+
+            <!--
+                Formulario para probar el endpoint POST /hellopost
+                Envía el nombre ingresado mediante POST y muestra la respuesta del servidor.
+            -->
+            <form id="postForm" class="form-block">
+                <label for="postname">Probar POST /hellopost</label><br>
+                <input type="text" id="postname" name="name" placeholder="Tu nombre" required>
+                <button type="submit">Enviar POST</button>
+                <!-- Área donde se muestra la respuesta del servidor al hacer POST -->
+                <div id="postrespmsg"></div>
+            </form>
+        </div>
+
+        <!-- Imagen de prueba para verificar la carga de archivos estáticos -->
+        <img src="test-image.jpg" alt="Imagen de prueba">
+
+        <!--
+            Sección visual para mostrar los recuadros que permiten ver el código fuente
+            de los archivos style.css e index.html. Al hacer clic, se carga y muestra el código.
+        -->
+        <div class="code-viewer-section">
+            <div class="code-card" onclick="showCode('style')">Ver código style.css</div>
+            <div class="code-card" onclick="showCode('html')">Ver código index.html</div>
+        </div>
+        <!-- Área donde se muestra el código fuente seleccionado -->
+        <pre id="codeDisplay" class="code-display" style="display:none;"></pre>
+    </div>
+
+    <!--
+        Script principal de la aplicación (puede contener lógica adicional para la página).
+    -->
+    <script src="app.js"></script>
     <script>
+    // -------------------------------------------------------------------------
+    // Manejador para el formulario POST: envía el nombre al endpoint /hellopost
+    // y muestra la respuesta JSON en el área correspondiente.
+    // -------------------------------------------------------------------------
     document.getElementById('postForm').addEventListener('submit', function(e) {
       e.preventDefault();
       let name = document.getElementById('postname').value;
@@ -17,26 +88,21 @@
         .then(y => document.getElementById('postrespmsg').textContent = y.mensaje)
         .catch(() => document.getElementById('postrespmsg').textContent = 'Error en la petición');
     });
+
+    // -------------------------------------------------------------------------
+    // Función para mostrar el código fuente de style.css o index.html.
+    // Al hacer clic en el recuadro correspondiente, se carga el archivo y se
+    // muestra su contenido en el área <pre> de la página.
+    // -------------------------------------------------------------------------
+    function showCode(type) {
+      let file = type === 'style' ? 'style.css' : 'index.html';
+      fetch(file)
+        .then(resp => resp.text())
+        .then(code => {
+          document.getElementById('codeDisplay').textContent = code;
+          document.getElementById('codeDisplay').style.display = 'block';
+        });
+    }
     </script>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prueba SimpleHttpServer</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="container">
-        <h1>¡Hola desde SimpleHttpServer!</h1>
-        <form id="helloForm">
-            <label for="name">¿Cuál es tu nombre?</label><br>
-            <input type="text" id="name" name="name" placeholder="Escribe tu nombre..." required>
-            <button type="submit">Saludar</button>
-        </form>
-        <div id="response"></div>
-        <img src="test-image.jpg" alt="Imagen de prueba">
-    </div>
-    <script src="app.js"></script>
 </body>
 </html>

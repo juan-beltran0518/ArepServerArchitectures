@@ -1,3 +1,18 @@
+
+/*
+ * Archivo: SimpleHttpServer.java
+ * Descripción: Servidor HTTP simple en Java para servir archivos estáticos y manejar endpoints REST (GET y POST).
+ * Autor: Juan sebastián Beltrán
+ * Fecha de creación: 15/08/2025
+ * Funcionalidad principal:
+ *  - Escucha peticiones HTTP en el puerto 35000.
+ *  - Sirve archivos estáticos desde src/main/resources/public.
+ *  - Expone dos endpoints REST: 
+ *      - GET  /app/hello?name=...   → retorna saludo en JSON.
+ *      - POST /hellopost?name=...   → retorna saludo en JSON.
+ *  - Devuelve 404 para recursos no encontrados o rutas inválidas.
+ */
+
 package com.edu.esuelaing.arep;
 
 import java.io.BufferedReader;
@@ -10,15 +25,26 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
 
+
+/**
+ * Clase principal del servidor HTTP simple.
+ * Contiene el ciclo principal que acepta conexiones y despacha las peticiones.
+ */
 public class SimpleHttpServer {
+
+    /**
+     * Método principal. Inicia el servidor HTTP en el puerto 35000 y atiende peticiones de forma indefinida.
+     * Maneja rutas para archivos estáticos y endpoints REST.
+     */
     public static void main(String[] args) throws Exception {
         int port = 35000;
         ServerSocket serverSocket = new ServerSocket(port);
         System.out.println("Server started on port " + port);
         while (true) {
+            // Manejo de cada conexión entrante en un bloque try-with-resources
             try (Socket clientSocket = serverSocket.accept();
-                    BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                    PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
+                 BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                 PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
 
                 java.io.OutputStream rawOut = clientSocket.getOutputStream();
 
@@ -27,8 +53,10 @@ public class SimpleHttpServer {
                 URI requesturi = null;
                 String method = "GET";
 
+                // Lectura y parseo de la petición HTTP
                 while ((inputLine = in.readLine()) != null) {
                     if (isFirstLine) {
+                        // Parseo de la primera línea: método y ruta
                         String[] parts = inputLine.split(" ");
                         method = parts[0];
                         requesturi = new URI(parts[1]);
@@ -42,7 +70,9 @@ public class SimpleHttpServer {
                 }
 
                 String outputLine;
+                // Despacho según la ruta y el método
                 if (requesturi != null && requesturi.getPath().startsWith("/hellopost")) {
+                    // Endpoint POST: /hellopost
                     if (method.equals("POST")) {
                         String postResp = helloPostService(requesturi);
                         rawOut.write(postResp.getBytes());
@@ -52,14 +82,16 @@ public class SimpleHttpServer {
                         rawOut.flush();
                     }
                 } else if (requesturi != null && requesturi.getPath().startsWith("/app/hello")) {
+                    // Endpoint GET: /app/hello
                     outputLine = helloService(requesturi);
                     out.println(outputLine);
                 } else {
-                    // Serve static files from /public
+                    // Servir archivos estáticos desde /public
                     String staticPath = requesturi != null ? requesturi.getPath() : "/";
                     if (staticPath == null || staticPath.equals("/") || staticPath.isEmpty()) {
                         staticPath = "/index.html";
                     }
+                    // Prevención de path traversal
                     if (staticPath.contains("..")) {
                         rawOut.write(notFoundResponse());
                         rawOut.flush();
@@ -75,6 +107,13 @@ public class SimpleHttpServer {
         }
     }
 
+
+    /**
+     * Endpoint GET /app/hello
+     * Genera una respuesta JSON con un saludo personalizado.
+     * @param requesturi URI de la petición (puede contener el parámetro name)
+     * @return Respuesta HTTP completa en formato texto
+     */
     private static String helloService(URI requesturi) {
         String response = "HTTP/1.1 200 OK\r\n" +
                 "content-type: application/json\r\n" +
@@ -88,6 +127,13 @@ public class SimpleHttpServer {
         return response;
     }
 
+
+    /**
+     * Sirve archivos estáticos ubicados en src/main/resources/public.
+     * @param path Ruta solicitada (relativa al directorio base)
+     * @param rawOut OutputStream para enviar la respuesta binaria
+     * @return true si el archivo fue servido correctamente, false si no existe o hay error
+     */
     private static boolean serveStaticFileRaw(String path, java.io.OutputStream rawOut) {
         String basePath = "src/main/resources/public";
         File file = new File(basePath + path);
@@ -115,6 +161,12 @@ public class SimpleHttpServer {
         return true;
     }
 
+
+    /**
+     * Determina el tipo de contenido (MIME) según la extensión del archivo solicitado.
+     * @param path Ruta del archivo
+     * @return Tipo de contenido MIME correspondiente
+     */
     private static String getContentType(String path) {
         if (path.endsWith(".html"))
             return "text/html";
@@ -135,6 +187,11 @@ public class SimpleHttpServer {
         return "text/plain";
     }
 
+
+    /**
+     * Genera una respuesta HTTP 404 para recursos no encontrados.
+     * @return Respuesta HTTP 404 en bytes
+     */
     private static byte[] notFoundResponse() {
         String response = "HTTP/1.1 404 Not Found\r\n" +
                 "Content-Type: text/plain\r\n\r\n" +
@@ -142,6 +199,13 @@ public class SimpleHttpServer {
         return response.getBytes();
     }
 
+
+    /**
+     * Endpoint POST /hellopost
+     * Genera una respuesta JSON con un saludo personalizado usando POST.
+     * @param requesturi URI de la petición (puede contener el parámetro name)
+     * @return Respuesta HTTP completa en formato texto
+     */
     private static String helloPostService(URI requesturi) {
         String name = "";
         String query = requesturi.getQuery();
