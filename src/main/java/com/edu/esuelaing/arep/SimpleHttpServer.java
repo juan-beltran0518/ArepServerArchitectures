@@ -13,6 +13,7 @@
  *  - Devuelve 404 para recursos no encontrados o rutas inválidas.
  */
 
+
 package com.edu.esuelaing.arep;
 
 import java.io.BufferedReader;
@@ -30,7 +31,24 @@ import java.net.URI;
  * Clase principal del servidor HTTP simple.
  * Contiene el ciclo principal que acepta conexiones y despacha las peticiones.
  */
+
 public class SimpleHttpServer {
+
+    // Carpeta base de archivos estáticos (por defecto)
+    private static String staticBaseFolder = "src/main/resources/public";
+
+    // Método para configurar la carpeta base de archivos estáticos
+    public static void staticfiles(String folder) {
+        staticBaseFolder = folder;
+    }
+
+    // Mapa para almacenar rutas GET y sus manejadores
+    private static final java.util.Map<String, RouteHandler> getRoutes = new java.util.HashMap<>();
+
+    // Método para registrar rutas GET
+    public static void get(String path, RouteHandler handler) {
+        getRoutes.put(path, handler);
+    }
 
     /**
      * Método principal. Inicia el servidor HTTP en el puerto 35000 y atiende peticiones de forma indefinida.
@@ -70,21 +88,23 @@ public class SimpleHttpServer {
                 }
 
                 String outputLine;
-                // Despacho según la ruta y el método
-                if (requesturi != null && requesturi.getPath().startsWith("/hellopost")) {
-                    // Endpoint POST: /hellopost
-                    if (method.equals("POST")) {
-                        String postResp = helloPostService(requesturi);
-                        rawOut.write(postResp.getBytes());
-                        rawOut.flush();
-                    } else {
-                        rawOut.write(notFoundResponse());
-                        rawOut.flush();
+                // Despacho solo a handlers registrados o archivos estáticos
+                if (requesturi != null && method.equals("GET") && getRoutes.containsKey(requesturi.getPath())) {
+                    // Parsear parámetros de consulta
+                    String query = requesturi.getQuery();
+                    java.util.Map<String, String> queryParams = new java.util.HashMap<>();
+                    if (query != null) {
+                        for (String param : query.split("&")) {
+                            String[] kv = param.split("=", 2);
+                            if (kv.length == 2) queryParams.put(kv[0], kv[1]);
+                            else if (kv.length == 1) queryParams.put(kv[0], "");
+                        }
                     }
-                } else if (requesturi != null && requesturi.getPath().startsWith("/app/hello")) {
-                    // Endpoint GET: /app/hello
-                    outputLine = helloService(requesturi);
-                    out.println(outputLine);
+                    // No se están leyendo headers en este ejemplo, pero se puede agregar si se requiere
+                    Request req = new Request(method, requesturi.getPath(), queryParams, null);
+                    Response res = new Response();
+                    String resp = getRoutes.get(requesturi.getPath()).handle(req, res);
+                    out.println(resp);
                 } else {
                     // Servir archivos estáticos desde /public
                     String staticPath = requesturi != null ? requesturi.getPath() : "/";
@@ -135,8 +155,7 @@ public class SimpleHttpServer {
      * @return true si el archivo fue servido correctamente, false si no existe o hay error
      */
     private static boolean serveStaticFileRaw(String path, java.io.OutputStream rawOut) {
-        String basePath = "src/main/resources/public";
-        File file = new File(basePath + path);
+        File file = new File(staticBaseFolder + path);
         if (!file.exists() || file.isDirectory()) {
             return false;
         }
