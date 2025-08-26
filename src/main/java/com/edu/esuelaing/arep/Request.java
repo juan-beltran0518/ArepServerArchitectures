@@ -36,14 +36,15 @@ public class Request {
         return queryParams.get(key);
     }
 
-    // Devuelve los valores asociados a un parámetro (soporta múltiples valores separados por coma)
     public java.util.List<String> getValues(String key) {
         String value = queryParams.get(key);
-        if (value == null) return java.util.Collections.emptyList();
+        if (value == null)
+            return java.util.Collections.emptyList();
         if (value.contains(",")) {
             String[] vals = value.split(",");
             java.util.List<String> result = new java.util.ArrayList<>();
-            for (String v : vals) result.add(v.trim());
+            for (String v : vals)
+                result.add(v.trim());
             return result;
         } else {
             return java.util.Collections.singletonList(value);

@@ -2,13 +2,11 @@ package com.edu.esuelaing.arep;
 
 public class Main {
     public static void main(String[] args) {
-        // Servir archivos estáticos desde el classpath para mayor robustez
         SimpleHttpServer.staticfiles("classpath:public");
-
-        // GET /app/hello retorna JSON { mensaje: "Hola, <name>!" }
         SimpleHttpServer.get("/app/hello", (req, res) -> {
             String name = req.getQueryParam("name");
-            if (name == null || name.isEmpty()) name = "mundo";
+            if (name == null || name.isEmpty())
+                name = "mundo";
             String body = "{\"mensaje\":\"Hola, " + name + "!\"}";
             return "HTTP/1.1 200 OK\r\n" +
                     "Content-Type: application/json\r\n" +
@@ -16,11 +14,10 @@ public class Main {
                     "\r\n" +
                     body;
         });
-
-        // POST /hellopost retorna JSON similar
         SimpleHttpServer.post("/hellopost", (req, res) -> {
             String name = req.getQueryParam("name");
-            if (name == null || name.isEmpty()) name = "mundo";
+            if (name == null || name.isEmpty())
+                name = "mundo";
             String body = "{\"mensaje\":\"Hola (POST), " + name + "!\"}";
             return "HTTP/1.1 200 OK\r\n" +
                     "Content-Type: application/json\r\n" +

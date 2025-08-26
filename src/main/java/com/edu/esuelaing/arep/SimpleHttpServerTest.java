@@ -9,7 +9,7 @@ public class SimpleHttpServerTest {
     public static void main(String[] args) throws Exception {
         Thread serverThread = new Thread(() -> {
             try {
-                Main.main(new String[]{});
+                Main.main(new String[] {});
             } catch (Exception e) {
                 e.printStackTrace();
             }

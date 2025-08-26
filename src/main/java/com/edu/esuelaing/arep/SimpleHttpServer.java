@@ -38,14 +38,12 @@ public class SimpleHttpServer {
     }
 
     private static final java.util.Map<String, RouteHandler> getRoutes = new java.util.HashMap<>();
-    // Nuevo: rutas para POST
     private static final java.util.Map<String, RouteHandler> postRoutes = new java.util.HashMap<>();
 
     public static void get(String path, RouteHandler handler) {
         getRoutes.put(path, handler);
     }
 
-    // Nuevo: registro de rutas POST
     public static void post(String path, RouteHandler handler) {
         postRoutes.put(path, handler);
     }
@@ -101,8 +99,8 @@ public class SimpleHttpServer {
                         Response res = new Response();
                         String resp = getRoutes.get(requesturi.getPath()).handle(req, res);
                         out.println(resp);
-                    } else if (requesturi != null && method.equals("POST") && postRoutes.containsKey(requesturi.getPath())) {
-                        // Manejo de POST similar a GET, usando parámetros de query en la URI
+                    } else if (requesturi != null && method.equals("POST")
+                            && postRoutes.containsKey(requesturi.getPath())) {
                         String query = requesturi.getQuery();
                         java.util.Map<String, String> queryParams = new java.util.HashMap<>();
                         if (query != null) {
@@ -139,14 +137,6 @@ public class SimpleHttpServer {
         }
 
     }
-    /**
-     * Endpoint GET /app/hello
-     * Genera una respuesta JSON con un saludo personalizado.
-     * 
-     * @param requesturi URI de la petición (puede contener el parámetro name)
-     * @return Respuesta HTTP completa en formato texto
-     */
-
 
     /**
      * Sirve archivos estáticos ubicados en src/main/resources/public.
@@ -157,7 +147,6 @@ public class SimpleHttpServer {
      *         hay error
      */
     private static boolean serveStaticFileRaw(String path, java.io.OutputStream rawOut) {
-        // Si se configura un prefijo classpath:, servir desde recursos del classpath
         if (staticBaseFolder != null && staticBaseFolder.startsWith("classpath:")) {
             if (serveClasspathResource(staticBaseFolder, path, rawOut)) {
                 return true;
@@ -167,7 +156,6 @@ public class SimpleHttpServer {
 
         File file = new File(staticBaseFolder + path);
         if (!file.exists() || file.isDirectory()) {
-            // Fallback: intentar servir desde classpath (recursos empacados en target/classes)
             if (serveClasspathResource("public", path, rawOut)) {
                 return true;
             }
@@ -194,19 +182,23 @@ public class SimpleHttpServer {
         return true;
     }
 
-    // Nuevo: servir recursos desde el classpath. Acepta base con o sin prefijo "classpath:".
     private static boolean serveClasspathResource(String base, String path, java.io.OutputStream rawOut) {
-        if (base == null) return false;
+        if (base == null)
+            return false;
         String normalizedBase = base.replaceFirst("^classpath:", "");
-        // normalizar slashes
-        while (normalizedBase.startsWith("/")) normalizedBase = normalizedBase.substring(1);
-        while (normalizedBase.endsWith("/")) normalizedBase = normalizedBase.substring(0, normalizedBase.length() - 1);
+        while (normalizedBase.startsWith("/"))
+            normalizedBase = normalizedBase.substring(1);
+        while (normalizedBase.endsWith("/"))
+            normalizedBase = normalizedBase.substring(0, normalizedBase.length() - 1);
         String normalizedPath = path != null && path.startsWith("/") ? path.substring(1) : path;
-        String resourcePath = (normalizedBase == null || normalizedBase.isEmpty()) ? normalizedPath : normalizedBase + "/" + normalizedPath;
-        if (resourcePath == null || resourcePath.isEmpty()) return false;
+        String resourcePath = (normalizedBase == null || normalizedBase.isEmpty()) ? normalizedPath
+                : normalizedBase + "/" + normalizedPath;
+        if (resourcePath == null || resourcePath.isEmpty())
+            return false;
 
         try (java.io.InputStream is = SimpleHttpServer.class.getClassLoader().getResourceAsStream(resourcePath)) {
-            if (is == null) return false;
+            if (is == null)
+                return false;
             // Bufferizar para conocer Content-Length
             java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
             byte[] buf = new byte[4096];
