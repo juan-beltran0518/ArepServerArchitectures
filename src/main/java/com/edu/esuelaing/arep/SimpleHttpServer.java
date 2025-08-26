@@ -85,16 +85,7 @@ public class SimpleHttpServer {
 
                     if (requesturi != null && method.equals("GET") && getRoutes.containsKey(requesturi.getPath())) {
                         String query = requesturi.getQuery();
-                        java.util.Map<String, String> queryParams = new java.util.HashMap<>();
-                        if (query != null) {
-                            for (String param : query.split("&")) {
-                                String[] kv = param.split("=", 2);
-                                if (kv.length == 2)
-                                    queryParams.put(kv[0], kv[1]);
-                                else if (kv.length == 1)
-                                    queryParams.put(kv[0], "");
-                            }
-                        }
+                        java.util.Map<String, String> queryParams = parseQueryParams(query);
                         Request req = new Request(method, requesturi.getPath(), queryParams, null);
                         Response res = new Response();
                         String resp = getRoutes.get(requesturi.getPath()).handle(req, res);
@@ -102,16 +93,7 @@ public class SimpleHttpServer {
                     } else if (requesturi != null && method.equals("POST")
                             && postRoutes.containsKey(requesturi.getPath())) {
                         String query = requesturi.getQuery();
-                        java.util.Map<String, String> queryParams = new java.util.HashMap<>();
-                        if (query != null) {
-                            for (String param : query.split("&")) {
-                                String[] kv = param.split("=", 2);
-                                if (kv.length == 2)
-                                    queryParams.put(kv[0], kv[1]);
-                                else if (kv.length == 1)
-                                    queryParams.put(kv[0], "");
-                            }
-                        }
+                        java.util.Map<String, String> queryParams = parseQueryParams(query);
                         Request req = new Request(method, requesturi.getPath(), queryParams, null);
                         Response res = new Response();
                         String resp = postRoutes.get(requesturi.getPath()).handle(req, res);
@@ -136,6 +118,19 @@ public class SimpleHttpServer {
             }
         }
 
+    }
+
+    // Utilidad: parsear parámetros de consulta de la URI
+    private static java.util.Map<String, String> parseQueryParams(String query) {
+        java.util.Map<String, String> queryParams = new java.util.HashMap<>();
+        if (query == null || query.isEmpty()) return queryParams;
+        for (String param : query.split("&")) {
+            if (param.isEmpty()) continue;
+            String[] kv = param.split("=", 2);
+            if (kv.length == 2) queryParams.put(kv[0], kv[1]);
+            else if (kv.length == 1) queryParams.put(kv[0], "");
+        }
+        return queryParams;
     }
 
     /**
