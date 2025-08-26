@@ -1,1 +1,6 @@
+com/edu/esuelaing/arep/SimpleHttpServerTest.class
+com/edu/esuelaing/arep/Response.class
+com/edu/esuelaing/arep/Request.class
 com/edu/esuelaing/arep/SimpleHttpServer.class
+com/edu/esuelaing/arep/Main.class
+com/edu/esuelaing/arep/RouteHandler.class

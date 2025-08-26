@@ -2,22 +2,33 @@ package com.edu.esuelaing.arep;
 
 public class Main {
     public static void main(String[] args) {
-        // Configurar carpeta de archivos estáticos
-        SimpleHttpServer.staticfiles("src/main/resources/public");
+        // Servir archivos estáticos desde el classpath para mayor robustez
+        SimpleHttpServer.staticfiles("classpath:public");
 
-        // Ruta /hello
-        SimpleHttpServer.get("/hello", (req, res) -> {
+        // GET /app/hello retorna JSON { mensaje: "Hola, <name>!" }
+        SimpleHttpServer.get("/app/hello", (req, res) -> {
             String name = req.getQueryParam("name");
-            if (name == null) name = "mundo";
-            return "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nHola, " + name + "!";
+            if (name == null || name.isEmpty()) name = "mundo";
+            String body = "{\"mensaje\":\"Hola, " + name + "!\"}";
+            return "HTTP/1.1 200 OK\r\n" +
+                    "Content-Type: application/json\r\n" +
+                    "Content-Length: " + body.getBytes().length + "\r\n" +
+                    "\r\n" +
+                    body;
         });
 
-        // Ruta /pi
-        SimpleHttpServer.get("/pi", (req, res) -> {
-            return "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n" + Math.PI;
+        // POST /hellopost retorna JSON similar
+        SimpleHttpServer.post("/hellopost", (req, res) -> {
+            String name = req.getQueryParam("name");
+            if (name == null || name.isEmpty()) name = "mundo";
+            String body = "{\"mensaje\":\"Hola (POST), " + name + "!\"}";
+            return "HTTP/1.1 200 OK\r\n" +
+                    "Content-Type: application/json\r\n" +
+                    "Content-Length: " + body.getBytes().length + "\r\n" +
+                    "\r\n" +
+                    body;
         });
 
-        // Iniciar el servidor
         try {
             SimpleHttpServer.main(args);
         } catch (Exception e) {

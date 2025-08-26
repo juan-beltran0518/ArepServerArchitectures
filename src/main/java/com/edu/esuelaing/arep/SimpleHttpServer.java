@@ -1,4 +1,3 @@
-
 /*
  * Archivo: SimpleHttpServer.java
  * Descripción: Servidor HTTP simple en Java para servir archivos estáticos y manejar endpoints REST (GET y POST).
@@ -39,9 +38,16 @@ public class SimpleHttpServer {
     }
 
     private static final java.util.Map<String, RouteHandler> getRoutes = new java.util.HashMap<>();
+    // Nuevo: rutas para POST
+    private static final java.util.Map<String, RouteHandler> postRoutes = new java.util.HashMap<>();
 
     public static void get(String path, RouteHandler handler) {
         getRoutes.put(path, handler);
+    }
+
+    // Nuevo: registro de rutas POST
+    public static void post(String path, RouteHandler handler) {
+        postRoutes.put(path, handler);
     }
 
     /**
@@ -95,6 +101,23 @@ public class SimpleHttpServer {
                         Response res = new Response();
                         String resp = getRoutes.get(requesturi.getPath()).handle(req, res);
                         out.println(resp);
+                    } else if (requesturi != null && method.equals("POST") && postRoutes.containsKey(requesturi.getPath())) {
+                        // Manejo de POST similar a GET, usando parámetros de query en la URI
+                        String query = requesturi.getQuery();
+                        java.util.Map<String, String> queryParams = new java.util.HashMap<>();
+                        if (query != null) {
+                            for (String param : query.split("&")) {
+                                String[] kv = param.split("=", 2);
+                                if (kv.length == 2)
+                                    queryParams.put(kv[0], kv[1]);
+                                else if (kv.length == 1)
+                                    queryParams.put(kv[0], "");
+                            }
+                        }
+                        Request req = new Request(method, requesturi.getPath(), queryParams, null);
+                        Response res = new Response();
+                        String resp = postRoutes.get(requesturi.getPath()).handle(req, res);
+                        out.println(resp);
                     } else {
                         String staticPath = requesturi != null ? requesturi.getPath() : "/";
                         if (staticPath == null || staticPath.equals("/") || staticPath.isEmpty()) {
@@ -134,8 +157,20 @@ public class SimpleHttpServer {
      *         hay error
      */
     private static boolean serveStaticFileRaw(String path, java.io.OutputStream rawOut) {
+        // Si se configura un prefijo classpath:, servir desde recursos del classpath
+        if (staticBaseFolder != null && staticBaseFolder.startsWith("classpath:")) {
+            if (serveClasspathResource(staticBaseFolder, path, rawOut)) {
+                return true;
+            }
+            return false;
+        }
+
         File file = new File(staticBaseFolder + path);
         if (!file.exists() || file.isDirectory()) {
+            // Fallback: intentar servir desde classpath (recursos empacados en target/classes)
+            if (serveClasspathResource("public", path, rawOut)) {
+                return true;
+            }
             return false;
         }
         String contentType = getContentType(path);
@@ -157,6 +192,41 @@ public class SimpleHttpServer {
             return false;
         }
         return true;
+    }
+
+    // Nuevo: servir recursos desde el classpath. Acepta base con o sin prefijo "classpath:".
+    private static boolean serveClasspathResource(String base, String path, java.io.OutputStream rawOut) {
+        if (base == null) return false;
+        String normalizedBase = base.replaceFirst("^classpath:", "");
+        // normalizar slashes
+        while (normalizedBase.startsWith("/")) normalizedBase = normalizedBase.substring(1);
+        while (normalizedBase.endsWith("/")) normalizedBase = normalizedBase.substring(0, normalizedBase.length() - 1);
+        String normalizedPath = path != null && path.startsWith("/") ? path.substring(1) : path;
+        String resourcePath = (normalizedBase == null || normalizedBase.isEmpty()) ? normalizedPath : normalizedBase + "/" + normalizedPath;
+        if (resourcePath == null || resourcePath.isEmpty()) return false;
+
+        try (java.io.InputStream is = SimpleHttpServer.class.getClassLoader().getResourceAsStream(resourcePath)) {
+            if (is == null) return false;
+            // Bufferizar para conocer Content-Length
+            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+            byte[] buf = new byte[4096];
+            int n;
+            while ((n = is.read(buf)) != -1) {
+                baos.write(buf, 0, n);
+            }
+            byte[] body = baos.toByteArray();
+            String contentType = getContentType(path);
+            String header = "HTTP/1.1 200 OK\r\n" +
+                    "Content-Type: " + contentType + "\r\n" +
+                    "Content-Length: " + body.length + "\r\n" +
+                    "\r\n";
+            rawOut.write(header.getBytes());
+            rawOut.write(body);
+            rawOut.flush();
+            return true;
+        } catch (IOException ioe) {
+            return false;
+        }
     }
 
     /**
@@ -197,13 +267,5 @@ public class SimpleHttpServer {
                 "Recurso no encontrado";
         return response.getBytes();
     }
-
-    /**
-     * Endpoint POST /hellopost
-     * Genera una respuesta JSON con un saludo personalizado usando POST.
-     * 
-     * @param requesturi URI de la petición (puede contener el parámetro name)
-     * @return Respuesta HTTP completa en formato texto
-     */
 
 }
