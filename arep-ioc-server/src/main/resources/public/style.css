@@ -1,0 +1,136 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    color: #2c3e50;
+    margin-bottom: 16px;
+}
+
+.container {
+    max-width: 600px;
+    margin: 40px auto;
+    background: #fff;
+    padding: 32px 24px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    text-align: center;
+}
+
+.forms-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.form-block {
+    background: #f8f8f8;
+    padding: 18px 16px 12px 16px;
+    border-radius: 6px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    width: 100%;
+    max-width: 350px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.form-block label {
+    font-weight: bold;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.form-block input[type="text"] {
+    width: 90%;
+    margin-bottom: 10px;
+}
+
+.form-block button {
+    width: 80%;
+    margin-bottom: 8px;
+}
+
+.form-block div {
+    margin-top: 8px;
+    min-height: 1.2em;
+}
+
+input[type="text"] {
+    padding: 8px;
+    width: 60%;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-bottom: 12px;
+}
+
+button {
+    padding: 8px 18px;
+    background: #3498db;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    margin-left: 8px;
+}
+
+button:hover {
+    background: #217dbb;
+}
+
+#response {
+    margin-top: 24px;
+    font-size: 1.1em;
+    color: #27ae60;
+}
+
+img {
+    margin-top: 24px;
+    max-width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+}
+
+.code-viewer-section {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 32px;
+    margin-bottom: 12px;
+}
+
+.code-card {
+    background: #e3e3e3;
+    border-radius: 6px;
+    padding: 14px 22px;
+    font-weight: bold;
+    color: #2c3e50;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    transition: background 0.2s;
+}
+
+.code-card:hover {
+    background: #d0d0d0;
+}
+
+.code-display {
+    background: #222;
+    color: #e0e0e0;
+    border-radius: 8px;
+    padding: 18px 12px;
+    margin: 0 auto 24px auto;
+    max-width: 90vw;
+    width: 95%;
+    min-height: 120px;
+    font-size: 0.98em;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+}

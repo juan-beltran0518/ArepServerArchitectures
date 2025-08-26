@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servidor IoC en Java</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Bienvenido al Servidor IoC en Java</h1>
+
+        <div class="forms-wrapper">
+            <form id="helloForm" class="form-block">
+                <label for="name">¿Cuál es tu nombre?</label><br>
+                <input type="text" id="name" name="name" placeholder="Escribe tu nombre..." required>
+                <button type="submit">Saludar</button>
+                <div id="response"></div>
+            </form>
+
+            <form id="postForm" class="form-block">
+                <label for="postname">Probar POST /greeting</label><br>
+                <input type="text" id="postname" name="name" placeholder="Tu nombre" required>
+                <button type="submit">Enviar POST</button>
+                <div id="postrespmsg"></div>
+            </form>
+        </div>
+
+        <img src="test-image.jpg" alt="Imagen de prueba">
+
+        <div class="code-viewer-section">
+            <div class="code-card" onclick="showCode('style')">Ver código style.css</div>
+            <div class="code-card" onclick="showCode('html')">Ver código index.html</div>
+        </div>
+        <pre id="codeDisplay" class="code-display" style="display:none;"></pre>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+    document.getElementById('postForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      let name = document.getElementById('postname').value;
+      fetch('/greeting?name=' + encodeURIComponent(name), {method: 'GET'})
+        .then(x => x.json())
+        .then(y => document.getElementById('postrespmsg').textContent = y)
+        .catch(() => document.getElementById('postrespmsg').textContent = 'Error en la petición');
+    });
+
+    function showCode(type) {
+      let file = type === 'style' ? 'style.css' : 'index.html';
+      fetch(file)
+        .then(resp => resp.text())
+        .then(code => {
+          document.getElementById('codeDisplay').textContent = code;
+          document.getElementById('codeDisplay').style.display = 'block';
+        });
+    }
+    </script>
+</body>
+</html>
