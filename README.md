@@ -109,6 +109,12 @@ arep-java-webserver-taller/
 - Pruebas automatizadas con SimpleHttpServerTest.
 
 ---
+## Imagenes Postman
+### POST
+[![Screenshot-2025-08-25-at-11-20-35-PM.png](https://i.postimg.cc/wjwCRFb1/Screenshot-2025-08-25-at-11-20-35-PM.png)](https://postimg.cc/VJbG39ww)
+### GET
+[![Screenshot-2025-08-25-at-11-21-22-PM.png](https://i.postimg.cc/x8jGmGZd/Screenshot-2025-08-25-at-11-21-22-PM.png)](https://postimg.cc/0M3JRSPg)
+---
 ## Notas
 
 - No se usaron frameworks web externos (Spark, Spring, etc.), solo Java estándar.
