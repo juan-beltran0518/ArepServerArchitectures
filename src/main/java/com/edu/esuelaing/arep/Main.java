@@ -3,7 +3,7 @@ package com.edu.esuelaing.arep;
 public class Main {
     public static void main(String[] args) {
         SimpleHttpServer.staticfiles("classpath:public");
-        SimpleHttpServer.get("/app/hello", (req, res) -> {
+        SimpleHttpServer.get("/app/hello", (req) -> {
             String name = req.getQueryParam("name");
             if (name == null || name.isEmpty())
                 name = "mundo";
@@ -14,7 +14,7 @@ public class Main {
                     "\r\n" +
                     body;
         });
-        SimpleHttpServer.post("/hellopost", (req, res) -> {
+        SimpleHttpServer.post("/hellopost", (req) -> {
             String name = req.getQueryParam("name");
             if (name == null || name.isEmpty())
                 name = "mundo";

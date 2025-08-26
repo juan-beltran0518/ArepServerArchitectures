@@ -83,21 +83,9 @@ public class SimpleHttpServer {
                         }
                     }
 
-                    if (requesturi != null && method.equals("GET") && getRoutes.containsKey(requesturi.getPath())) {
-                        String query = requesturi.getQuery();
-                        java.util.Map<String, String> queryParams = parseQueryParams(query);
-                        Request req = new Request(method, requesturi.getPath(), queryParams, null);
-                        Response res = new Response();
-                        String resp = getRoutes.get(requesturi.getPath()).handle(req, res);
-                        out.println(resp);
-                    } else if (requesturi != null && method.equals("POST")
-                            && postRoutes.containsKey(requesturi.getPath())) {
-                        String query = requesturi.getQuery();
-                        java.util.Map<String, String> queryParams = parseQueryParams(query);
-                        Request req = new Request(method, requesturi.getPath(), queryParams, null);
-                        Response res = new Response();
-                        String resp = postRoutes.get(requesturi.getPath()).handle(req, res);
-                        out.println(resp);
+                    // Manejo compacto de rutas GET/POST
+                    if (handleRoute(method, requesturi, out)) {
+                        // respuesta ya enviada
                     } else {
                         String staticPath = requesturi != null ? requesturi.getPath() : "/";
                         if (staticPath == null || staticPath.equals("/") || staticPath.isEmpty()) {
@@ -123,23 +111,39 @@ public class SimpleHttpServer {
     // Utilidad: parsear parámetros de consulta de la URI
     private static java.util.Map<String, String> parseQueryParams(String query) {
         java.util.Map<String, String> queryParams = new java.util.HashMap<>();
-        if (query == null || query.isEmpty()) return queryParams;
+        if (query == null || query.isEmpty())
+            return queryParams;
         for (String param : query.split("&")) {
-            if (param.isEmpty()) continue;
+            if (param.isEmpty())
+                continue;
             String[] kv = param.split("=", 2);
-            if (kv.length == 2) queryParams.put(kv[0], kv[1]);
-            else if (kv.length == 1) queryParams.put(kv[0], "");
+            if (kv.length == 2)
+                queryParams.put(kv[0], kv[1]);
+            else if (kv.length == 1)
+                queryParams.put(kv[0], "");
         }
         return queryParams;
     }
 
+    // Manejo de rutas dinámicas (GET/POST) de forma unificada
+    private static boolean handleRoute(String method, java.net.URI requesturi, java.io.PrintWriter out) {
+        if (requesturi == null || method == null) return false;
+        String m = method.toUpperCase();
+        java.util.Map<String, RouteHandler> routes = null;
+        if ("GET".equals(m)) routes = getRoutes;
+        else if ("POST".equals(m)) routes = postRoutes;
+        if (routes == null) return false;
+        RouteHandler handler = routes.get(requesturi.getPath());
+        if (handler == null) return false;
+        java.util.Map<String, String> queryParams = parseQueryParams(requesturi.getQuery());
+        Request req = new Request(m, requesturi.getPath(), queryParams, null);
+        String resp = handler.handle(req);
+        out.println(resp);
+        return true;
+    }
+
     /**
      * Sirve archivos estáticos ubicados en src/main/resources/public.
-     * 
-     * @param path   Ruta solicitada (relativa al directorio base)
-     * @param rawOut OutputStream para enviar la respuesta binaria
-     * @return true si el archivo fue servido correctamente, false si no existe o
-     *         hay error
      */
     private static boolean serveStaticFileRaw(String path, java.io.OutputStream rawOut) {
         if (staticBaseFolder != null && staticBaseFolder.startsWith("classpath:")) {
@@ -194,7 +198,6 @@ public class SimpleHttpServer {
         try (java.io.InputStream is = SimpleHttpServer.class.getClassLoader().getResourceAsStream(resourcePath)) {
             if (is == null)
                 return false;
-            // Bufferizar para conocer Content-Length
             java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
             byte[] buf = new byte[4096];
             int n;
@@ -216,13 +219,6 @@ public class SimpleHttpServer {
         }
     }
 
-    /**
-     * Determina el tipo de contenido (MIME) según la extensión del archivo
-     * solicitado.
-     * 
-     * @param path Ruta del archivo
-     * @return Tipo de contenido MIME correspondiente
-     */
     private static String getContentType(String path) {
         if (path.endsWith(".html"))
             return "text/html";
@@ -243,16 +239,10 @@ public class SimpleHttpServer {
         return "text/plain";
     }
 
-    /**
-     * Genera una respuesta HTTP 404 para recursos no encontrados.
-     * 
-     * @return Respuesta HTTP 404 en bytes
-     */
     private static byte[] notFoundResponse() {
         String response = "HTTP/1.1 404 Not Found\r\n" +
                 "Content-Type: text/plain\r\n\r\n" +
                 "Recurso no encontrado";
         return response.getBytes();
     }
-
 }

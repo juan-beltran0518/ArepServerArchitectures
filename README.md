@@ -1,85 +1,103 @@
-# AREP Java Web Server - Taller de Arquitectura Empresarial
+# AREP Java Web Framework - Taller de Arquitectura Empresarial
 
 ## Descripción
-Este proyecto corresponde a un taller de **Arquitectura de Aplicaciones Distribuidas** en Ingeniería de Sistemas.  
-Se implementa un **servidor web en Java** que soporta múltiples solicitudes HTTP **seguida, no concurrentes**, sirve archivos estáticos (HTML, CSS, JS, imágenes) desde el disco local y permite comunicación asíncrona con servicios REST en el backend, sin usar frameworks web externos.
+Este proyecto es parte del taller de **Arquitectura de Aplicaciones Distribuidas**.  
+Se implementa un **framework web en Java** que permite definir servicios REST usando funciones lambda, gestionar parámetros de consulta y servir archivos estáticos (HTML, CSS, JS, imágenes) desde una carpeta configurable, sin emplear frameworks externos.
 
 ---
 
 ## Requisitos
 - Java 17 o superior
 - Maven
-- Navegador web moderno para probar la aplicación
-- Conexión a internet para probar servicios REST externos (opcional)
+- Navegador web moderno
+- (Opcional) Postman o curl para pruebas REST
 
 ---
 
 ## Instalación y Ejecución
 
-1. Clonar el repositorio:
-```bash
-git clone https://github.com/juan-beltran0518/ArepJavawebserverTaller.git
-```
-2. Compilar con Maven:
-```bash
-mvn clean package
-```
-3. Directorio (Opcional):
-```bash
-cd webserver-arep/
-```
-4. Ejecutar el servidor:
-```bash
-java -cp target/classes com.edu.esuelaing.arep.SimpleHttpServer
-```
-5. Abrir un navegador y navegar a:
-```bash
-http://localhost:35000
-```
+1. Clona el repositorio:
+   ```sh
+   git clone https://github.com/juan-beltran0518/ArepJavawebserverTaller.git
+
+2. Compila el proyecto:
+  ```sh
+    mvn clean package
+
+3. Ejecuta el servidor:
+  ```sh
+    java -cp target/classes com.edu.esuelaing.arep.Main
+
+4. Abre tu navegador y accede a:
+  ```sh
+    http://localhost:35000/
 
 ---
 
 ## Estructura del proyecto
-```bash
-arep-java-webserver-taller/
-│
-├── src/
-│   ├── main/
-│   │   ├── java/                     # Código fuente Java
-│   │   │   └── com/edu/escuelaing/arep/
-│   │   │       └── SimpleHttpServer.java
-│   │   └── resources/
-│   │       └── public/               # Archivos estáticos: HTML, CSS, JS, imágenes
-├── pom.xml                            # Archivo de Maven
-└── README.md                          # Documentación
-```
+5.  ```sh
+    arep-java-webserver-taller/
+    │
+    ├── src/
+    │   ├── main/
+    │   │   ├── java/
+    │   │   │   └── com/edu/esuelaing/arep/
+    │   │   │       ├── Main.java
+    │   │   │       ├── SimpleHttpServer.java
+    │   │   │       ├── RouteHandler.java
+    │   │   │       ├── Request.java
+    │   │   │       └── Response.java
+    │   │   └── resources/
+    │   │       └── public/         # Archivos estáticos: index.html, style.css, app.js, imágenes
+    │   └── test/
+    │       └── java/
+    │           └── com/edu/esuelaing/arep/
+    │               └── SimpleHttpServerTest.java
+    ├── [pom.xml]
+    └── [README.md]
 
 ---
 
-## Arquitectura del prototipo
- - Servidor HTTP en Java que:
-    - Escucha solicitudes HTTP en un puerto configurable
-    - Detecta rutas y métodos (GET, POST)
-    - Sirve archivos estáticos desde src/main/resources/public
-    - Retorna respuestas JSON para servicios REST simulados (/app/hello)
+## Arquitectura y Características
+- Servidor HTTP en Java:
 
-  - Cliente Web:
-      - HTML con formularios que llaman a servicios GET y POST
-      - JavaScript para comunicación asíncrona usando XMLHttpRequest y fetch
+  - Escucha en el puerto 35000 (configurable)
+  - Permite definir rutas REST con lambdas usando get()
+  - Extrae parámetros de consulta accesibles vía Request.getValues()
+  - Sirve archivos estáticos desde la carpeta configurada con staticfiles()
+  - Responde con 404 para rutas no encontradas
+- Cliente Web:
+
+  - HTML con formularios para probar servicios GET y POST
+  - JavaScript para llamadas asíncronas (fetch/XMLHttpRequest)
+
+---
+
+## Ejemplo de uso
+6. ```sh
+public static void main(String[] args) {
+    SimpleHttpServer.staticfiles("src/main/resources/public");
+    SimpleHttpServer.get("/app/hello", (req, res) -> {
+        String name = req.getValues("name").stream().findFirst().orElse("Mundo");
+        return "{ \"mensaje\": \"Hola, " + name + "!\" }";
+    });
+    SimpleHttpServer.get("/pi", (req, res) -> String.valueOf(Math.PI));
+}
 
 ---
 
-## Pruebas realizadas
+### Pruebas realizadas
+- Solicitudes GET a /app/hello?name=Pedro → responde { "mensaje": "Hola, Pedro!" }
+- Solicitudes POST a /hellopost?name=Pedro → responde { "mensaje": "Hola (POST), Pedro!" }
+- Acceso a archivos estáticos: /, /index.html, /style.css, /app.js, /test-image.jpg
+- Validación de respuestas JSON desde el backend
+- Manejo correcto de rutas no encontradas (404)
+- Pruebas automatizadas con 
+SimpleHttpServerTest
 
-  - Solicitudes GET a páginas HTML, CSS, JS
-        - Solicitudes POST simuladas desde formularios web
-        - Acceso a archivos estáticos: imágenes, CSS, JS
-        - Validación de respuestas JSON desde el backend
-        - Manejo de rutas no encontradas (404)
-
----
+--- 
 
 ## Notas
-   - No se usaron frameworks web como Spark o Spring, solo Java y librerías estándar de red.
-   - Se recomienda ejecutar desde la raíz del proyecto para que los archivos estáticos se detecten correctamente.
-
+- No se usaron frameworks web externos (Spark, Spring, etc.), solo Java estándar.
+- Ejecuta el servidor desde la raíz del proyecto para que los archivos estáticos se sirvan correctamente.
+- Puedes probar los endpoints REST y archivos estáticos desde el navegador o herramientas como Postman.

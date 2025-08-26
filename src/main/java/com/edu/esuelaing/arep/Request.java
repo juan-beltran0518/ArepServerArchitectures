@@ -38,16 +38,11 @@ public class Request {
 
     public java.util.List<String> getValues(String key) {
         String value = queryParams.get(key);
-        if (value == null)
+        if (value == null || value.isEmpty())
             return java.util.Collections.emptyList();
-        if (value.contains(",")) {
-            String[] vals = value.split(",");
-            java.util.List<String> result = new java.util.ArrayList<>();
-            for (String v : vals)
-                result.add(v.trim());
-            return result;
-        } else {
-            return java.util.Collections.singletonList(value);
-        }
+        return java.util.Arrays.stream(value.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(java.util.stream.Collectors.toList());
     }
 }
