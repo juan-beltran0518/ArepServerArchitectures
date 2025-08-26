@@ -53,10 +53,6 @@ arep-java-webserver-taller/
 │   │   │       └── Response.java
 │   │   └── resources/
 │   │       └── public/               # Archivos estáticos: 
-│   └── test/
-│       └── java/
-│           └── com/edu/esuelaing/arep/
-│               └── SimpleHttpServerTest.java
 ├── pom.xml                           # Archivo de Maven
 └── README.md                         # Documentación
 ```
@@ -100,9 +96,9 @@ arep-java-webserver-taller/
 ---
 
 ## Pruebas realizadas
- - Solicitudes GET a /app/hello?name=Pedro → responde { "mensaje": "Hola, Pedro!" }.
+ - Solicitudes GET a /app/hello?name=Juan → responde { "mensaje": "Hola, Juan!" }.
 
-  - Solicitudes POST a /hellopost?name=Pedro → responde { "mensaje": "Hola (POST), Pedro!" }.
+  - Solicitudes POST a /hellopost?name=Beltran → responde { "mensaje": "Hola (POST), Beltran!" }.
 
 - Acceso a archivos estáticos: /, /index.html, /style.css, /app.js, /test-image.jpg.
 
