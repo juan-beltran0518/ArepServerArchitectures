@@ -1,4 +1,3 @@
-
 /*
  * Archivo: SimpleHttpServer.java
  * Descripción: Servidor HTTP simple en Java para servir archivos estáticos y manejar endpoints REST (GET y POST).
@@ -25,119 +24,140 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
 
-
 /**
  * Clase principal del servidor HTTP simple.
  * Contiene el ciclo principal que acepta conexiones y despacha las peticiones.
  */
+
 public class SimpleHttpServer {
 
+    private static String staticBaseFolder = "src/main/resources/public";
+
+    public static void staticfiles(String folder) {
+        staticBaseFolder = folder;
+    }
+
+    private static final java.util.Map<String, RouteHandler> getRoutes = new java.util.HashMap<>();
+    private static final java.util.Map<String, RouteHandler> postRoutes = new java.util.HashMap<>();
+
+    public static void get(String path, RouteHandler handler) {
+        getRoutes.put(path, handler);
+    }
+
+    public static void post(String path, RouteHandler handler) {
+        postRoutes.put(path, handler);
+    }
+
     /**
-     * Método principal. Inicia el servidor HTTP en el puerto 35000 y atiende peticiones de forma indefinida.
+     * Método principal. Inicia el servidor HTTP en el puerto 35000 y atiende
+     * peticiones de forma indefinida.
      * Maneja rutas para archivos estáticos y endpoints REST.
      */
     public static void main(String[] args) throws Exception {
         int port = 35000;
-        ServerSocket serverSocket = new ServerSocket(port);
-        System.out.println("Server started on port " + port);
-        while (true) {
-            // Manejo de cada conexión entrante en un bloque try-with-resources
-            try (Socket clientSocket = serverSocket.accept();
-                 BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                 PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
+        try (ServerSocket serverSocket = new ServerSocket(port)) {
+            System.out.println("Server started on port " + port);
+            while (true) {
+                try (Socket clientSocket = serverSocket.accept();
+                        BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                        PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
 
-                java.io.OutputStream rawOut = clientSocket.getOutputStream();
+                    java.io.OutputStream rawOut = clientSocket.getOutputStream();
 
-                String inputLine;
-                boolean isFirstLine = true;
-                URI requesturi = null;
-                String method = "GET";
+                    String inputLine;
+                    boolean isFirstLine = true;
+                    URI requesturi = null;
+                    String method = "GET";
 
-                // Lectura y parseo de la petición HTTP
-                while ((inputLine = in.readLine()) != null) {
-                    if (isFirstLine) {
-                        // Parseo de la primera línea: método y ruta
-                        String[] parts = inputLine.split(" ");
-                        method = parts[0];
-                        requesturi = new URI(parts[1]);
-                        System.out.println("Path: " + requesturi.getPath());
-                        isFirstLine = false;
+                    while ((inputLine = in.readLine()) != null) {
+                        if (isFirstLine) {
+                            String[] parts = inputLine.split(" ");
+                            method = parts[0];
+                            requesturi = new URI(parts[1]);
+                            System.out.println("Path: " + requesturi.getPath());
+                            isFirstLine = false;
+                        }
+                        System.out.println("Received: " + inputLine);
+                        if (!in.ready()) {
+                            break;
+                        }
                     }
-                    System.out.println("Received: " + inputLine);
-                    if (!in.ready()) {
-                        break;
-                    }
-                }
 
-                String outputLine;
-                // Despacho según la ruta y el método
-                if (requesturi != null && requesturi.getPath().startsWith("/hellopost")) {
-                    // Endpoint POST: /hellopost
-                    if (method.equals("POST")) {
-                        String postResp = helloPostService(requesturi);
-                        rawOut.write(postResp.getBytes());
-                        rawOut.flush();
+                    // Manejo compacto de rutas GET/POST
+                    if (handleRoute(method, requesturi, out)) {
+                        // respuesta ya enviada
                     } else {
-                        rawOut.write(notFoundResponse());
-                        rawOut.flush();
-                    }
-                } else if (requesturi != null && requesturi.getPath().startsWith("/app/hello")) {
-                    // Endpoint GET: /app/hello
-                    outputLine = helloService(requesturi);
-                    out.println(outputLine);
-                } else {
-                    // Servir archivos estáticos desde /public
-                    String staticPath = requesturi != null ? requesturi.getPath() : "/";
-                    if (staticPath == null || staticPath.equals("/") || staticPath.isEmpty()) {
-                        staticPath = "/index.html";
-                    }
-                    // Prevención de path traversal
-                    if (staticPath.contains("..")) {
-                        rawOut.write(notFoundResponse());
-                        rawOut.flush();
-                    } else {
-                        boolean served = serveStaticFileRaw(staticPath, rawOut);
-                        if (!served) {
+                        String staticPath = requesturi != null ? requesturi.getPath() : "/";
+                        if (staticPath == null || staticPath.equals("/") || staticPath.isEmpty()) {
+                            staticPath = "/index.html";
+                        }
+                        if (staticPath.contains("..")) {
                             rawOut.write(notFoundResponse());
                             rawOut.flush();
+                        } else {
+                            boolean served = serveStaticFileRaw(staticPath, rawOut);
+                            if (!served) {
+                                rawOut.write(notFoundResponse());
+                                rawOut.flush();
+                            }
                         }
                     }
                 }
             }
         }
+
     }
 
-
-    /**
-     * Endpoint GET /app/hello
-     * Genera una respuesta JSON con un saludo personalizado.
-     * @param requesturi URI de la petición (puede contener el parámetro name)
-     * @return Respuesta HTTP completa en formato texto
-     */
-    private static String helloService(URI requesturi) {
-        String response = "HTTP/1.1 200 OK\r\n" +
-                "content-type: application/json\r\n" +
-                "\r\n";
-        String name = "";
-        String query = requesturi.getQuery();
-        if (query != null && query.contains("=")) {
-            name = query.split("=")[1];
+    // Utilidad: parsear parámetros de consulta de la URI
+    private static java.util.Map<String, String> parseQueryParams(String query) {
+        java.util.Map<String, String> queryParams = new java.util.HashMap<>();
+        if (query == null || query.isEmpty())
+            return queryParams;
+        for (String param : query.split("&")) {
+            if (param.isEmpty())
+                continue;
+            String[] kv = param.split("=", 2);
+            if (kv.length == 2)
+                queryParams.put(kv[0], kv[1]);
+            else if (kv.length == 1)
+                queryParams.put(kv[0], "");
         }
-        response += "{\"mensaje\": \"Hola " + name + "\"}";
-        return response;
+        return queryParams;
     }
 
+    // Manejo de rutas dinámicas (GET/POST) de forma unificada
+    private static boolean handleRoute(String method, java.net.URI requesturi, java.io.PrintWriter out) {
+        if (requesturi == null || method == null) return false;
+        String m = method.toUpperCase();
+        java.util.Map<String, RouteHandler> routes = null;
+        if ("GET".equals(m)) routes = getRoutes;
+        else if ("POST".equals(m)) routes = postRoutes;
+        if (routes == null) return false;
+        RouteHandler handler = routes.get(requesturi.getPath());
+        if (handler == null) return false;
+        java.util.Map<String, String> queryParams = parseQueryParams(requesturi.getQuery());
+        Request req = new Request(m, requesturi.getPath(), queryParams, null);
+        String resp = handler.handle(req);
+        out.println(resp);
+        return true;
+    }
 
     /**
      * Sirve archivos estáticos ubicados en src/main/resources/public.
-     * @param path Ruta solicitada (relativa al directorio base)
-     * @param rawOut OutputStream para enviar la respuesta binaria
-     * @return true si el archivo fue servido correctamente, false si no existe o hay error
      */
     private static boolean serveStaticFileRaw(String path, java.io.OutputStream rawOut) {
-        String basePath = "src/main/resources/public";
-        File file = new File(basePath + path);
+        if (staticBaseFolder != null && staticBaseFolder.startsWith("classpath:")) {
+            if (serveClasspathResource(staticBaseFolder, path, rawOut)) {
+                return true;
+            }
+            return false;
+        }
+
+        File file = new File(staticBaseFolder + path);
         if (!file.exists() || file.isDirectory()) {
+            if (serveClasspathResource("public", path, rawOut)) {
+                return true;
+            }
             return false;
         }
         String contentType = getContentType(path);
@@ -161,12 +181,44 @@ public class SimpleHttpServer {
         return true;
     }
 
+    private static boolean serveClasspathResource(String base, String path, java.io.OutputStream rawOut) {
+        if (base == null)
+            return false;
+        String normalizedBase = base.replaceFirst("^classpath:", "");
+        while (normalizedBase.startsWith("/"))
+            normalizedBase = normalizedBase.substring(1);
+        while (normalizedBase.endsWith("/"))
+            normalizedBase = normalizedBase.substring(0, normalizedBase.length() - 1);
+        String normalizedPath = path != null && path.startsWith("/") ? path.substring(1) : path;
+        String resourcePath = (normalizedBase == null || normalizedBase.isEmpty()) ? normalizedPath
+                : normalizedBase + "/" + normalizedPath;
+        if (resourcePath == null || resourcePath.isEmpty())
+            return false;
 
-    /**
-     * Determina el tipo de contenido (MIME) según la extensión del archivo solicitado.
-     * @param path Ruta del archivo
-     * @return Tipo de contenido MIME correspondiente
-     */
+        try (java.io.InputStream is = SimpleHttpServer.class.getClassLoader().getResourceAsStream(resourcePath)) {
+            if (is == null)
+                return false;
+            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+            byte[] buf = new byte[4096];
+            int n;
+            while ((n = is.read(buf)) != -1) {
+                baos.write(buf, 0, n);
+            }
+            byte[] body = baos.toByteArray();
+            String contentType = getContentType(path);
+            String header = "HTTP/1.1 200 OK\r\n" +
+                    "Content-Type: " + contentType + "\r\n" +
+                    "Content-Length: " + body.length + "\r\n" +
+                    "\r\n";
+            rawOut.write(header.getBytes());
+            rawOut.write(body);
+            rawOut.flush();
+            return true;
+        } catch (IOException ioe) {
+            return false;
+        }
+    }
+
     private static String getContentType(String path) {
         if (path.endsWith(".html"))
             return "text/html";
@@ -187,34 +239,10 @@ public class SimpleHttpServer {
         return "text/plain";
     }
 
-
-    /**
-     * Genera una respuesta HTTP 404 para recursos no encontrados.
-     * @return Respuesta HTTP 404 en bytes
-     */
     private static byte[] notFoundResponse() {
         String response = "HTTP/1.1 404 Not Found\r\n" +
                 "Content-Type: text/plain\r\n\r\n" +
                 "Recurso no encontrado";
         return response.getBytes();
-    }
-
-
-    /**
-     * Endpoint POST /hellopost
-     * Genera una respuesta JSON con un saludo personalizado usando POST.
-     * @param requesturi URI de la petición (puede contener el parámetro name)
-     * @return Respuesta HTTP completa en formato texto
-     */
-    private static String helloPostService(URI requesturi) {
-        String name = "";
-        String query = requesturi.getQuery();
-        if (query != null && query.contains("=")) {
-            name = query.split("=")[1];
-        }
-        String response = "HTTP/1.1 200 OK\r\n" +
-                "Content-Type: application/json\r\n\r\n" +
-                "{\"mensaje\": \"POST Hola " + name + "\"}";
-        return response;
     }
 }
