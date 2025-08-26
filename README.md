@@ -1,7 +1,7 @@
 # Project Statement: Web Framework Development for REST Services and Static File Management
 
 ## Descripción
-Este proyecto hace parte del taller de **Arquitectura de Aplicaciones Distribuidas** en Ingeniería de Sistemas.  
+Este proyecto hace parte del taller de **Arquitectura** en Ingeniería de Sistemas.  
 Se implementa un **framework web en Java** que permite definir servicios REST mediante funciones lambda, gestionar parámetros de consulta y servir archivos estáticos (HTML, CSS, JS, imágenes) desde una carpeta configurable, sin emplear frameworks externos.
 
 ---
