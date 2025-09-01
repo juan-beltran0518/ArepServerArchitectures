@@ -4,6 +4,7 @@ import com.edu.esuelaing.arep.SimpleHttpServer;
 import com.edu.esuelaing.arep.Request;
 import com.edu.esuelaing.arep.annotations.RestController;
 import com.edu.esuelaing.arep.annotations.GetMapping;
+import com.edu.esuelaing.arep.annotations.PostMapping;
 import com.edu.esuelaing.arep.annotations.RequestParam;
 
 import java.lang.reflect.Method;
@@ -102,7 +103,7 @@ public class MicroSpringBoot {
     }
 
     /**
-     * Registra todos los métodos de un controlador que tengan @GetMapping
+     * Registra todos los métodos de un controlador que tengan @GetMapping o @PostMapping
      */
     private static void registerControllerMethods(Object controller) {
         Class<?> clazz = controller.getClass();
@@ -124,6 +125,27 @@ public class MicroSpringBoot {
                 });
 
                 routeHandlers.put("GET:" + path, request -> {
+                    try {
+                        return invokeControllerMethod(controller, method, request);
+                    } catch (Exception e) {
+                        return "Error: " + e.getMessage();
+                    }
+                });
+            } else if (method.isAnnotationPresent(PostMapping.class)) {
+                String path = method.getAnnotation(PostMapping.class).value();
+                System.out.println("  - Registrando ruta POST: " + path);
+
+                SimpleHttpServer.post(path, request -> {
+                    try {
+                        return invokeControllerMethod(controller, method, request);
+                    } catch (Exception e) {
+                        System.err.println("Error procesando request: " + e.getMessage());
+                        e.printStackTrace();
+                        return "Error processing request: " + e.getMessage();
+                    }
+                });
+
+                routeHandlers.put("POST:" + path, request -> {
                     try {
                         return invokeControllerMethod(controller, method, request);
                     } catch (Exception e) {
