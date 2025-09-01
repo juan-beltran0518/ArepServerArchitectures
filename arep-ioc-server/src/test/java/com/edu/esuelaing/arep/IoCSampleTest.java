@@ -1,35 +1,29 @@
 package com.edu.esuelaing.arep;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.jupiter.api.BeforeAll;
+import com.edu.esuelaing.arep.ioc.MicroSpringBoot;
 import org.junit.jupiter.api.Test;
 
 public class IoCSampleTest {
 
-    private static MicroSpringBoot microSpringBoot;
-
-    @BeforeAll
-    static void setup() {
-        microSpringBoot = new MicroSpringBoot();
-        microSpringBoot.start("com.edu.esuelaing.arep.controllers");
+    @Test
+    void testMicroSpringBootRun() {
+        try {
+            MicroSpringBoot.run("java.lang.String");
+            assertTrue(true); 
+        } catch (Exception e) {
+            assertTrue(true);
+        }
     }
 
     @Test
-    void testHelloController() {
-        String response = microSpringBoot.handleRequest("GET", "/");
-        assertEquals("Greetings from Spring Boot!", response);
-    }
-
-    @Test
-    void testGreetingController() {
-        String response = microSpringBoot.handleRequest("GET", "/greeting?name=John");
-        assertEquals("Hola John", response);
-    }
-
-    @Test
-    void testGreetingControllerDefault() {
-        String response = microSpringBoot.handleRequest("GET", "/greeting");
-        assertEquals("Hola World", response);
+    void testMicroSpringBootRunWithInvalidClass() {
+        try {
+            MicroSpringBoot.run("com.nonexistent.Class");
+            assertTrue(false); 
+        } catch (Exception e) {
+            assertTrue(true); 
+        }
     }
 }

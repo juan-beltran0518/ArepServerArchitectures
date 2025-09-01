@@ -17,18 +17,22 @@ public class MicroSpringBoot {
 
         String pojoClassName = args[0];
         try {
-            Class<?> pojoClass = Class.forName(pojoClassName);
-            BeanContainer beanContainer = new BeanContainer();
-            beanContainer.registerBean(pojoClass.getDeclaredConstructor().newInstance());
-
-            // Load REST controllers
-            loadRestControllers(beanContainer);
-
-            // Start the HTTP server
-            SimpleHttpServer.main(args);
+            run(pojoClassName);
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static void run(String pojoClassName) throws Exception {
+        Class<?> pojoClass = Class.forName(pojoClassName);
+        BeanContainer beanContainer = new BeanContainer();
+        Object pojoInstance = pojoClass.getDeclaredConstructor().newInstance();
+        beanContainer.registerBean((Class<Object>) pojoClass, pojoInstance);
+
+        loadRestControllers(beanContainer);
+
+        String[] serverArgs = new String[0];
+        SimpleHttpServer.main(serverArgs);
     }
 
     private static void loadRestControllers(BeanContainer beanContainer) {

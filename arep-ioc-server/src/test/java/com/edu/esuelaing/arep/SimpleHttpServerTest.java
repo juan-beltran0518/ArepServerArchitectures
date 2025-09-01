@@ -19,7 +19,7 @@ public class SimpleHttpServerTest {
     static void startServer() throws Exception {
         serverThread = new Thread(() -> {
             try {
-                Main.main(new String[] {});
+                Main.main(new String[] {"java.lang.String"});
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -31,7 +31,7 @@ public class SimpleHttpServerTest {
 
     @AfterAll
     static void stopServer() throws Exception {
-        // Logic to stop the server if necessary
+        
     }
 
     @Test
