@@ -14,6 +14,6 @@ public class HelloController {
 
     @GetMapping("/app/hello")
     public String hello(@RequestParam(value = "name", defaultValue = "World") String name) {
-        return "Hola, " + name;
+        return "{\"mensaje\": \"Hola, " + name + "\"}";
     }
 }
