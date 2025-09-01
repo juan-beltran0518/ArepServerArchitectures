@@ -31,7 +31,7 @@ public class SimpleHttpServer {
     }
 
     public static void main(String[] args) throws Exception {
-        int port = 35000;
+        int port = 8080;
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             System.out.println("Server started on port " + port);
             while (true) {
@@ -56,8 +56,10 @@ public class SimpleHttpServer {
                         }
                     }
 
-                    if (!handleRoute(method, requesturi, out)) {
-                        serveStaticFile(requesturi, out);
+                    if (!serveStaticFile(requesturi, out)) {
+                        if (!handleRoute(method, requesturi, out)) {
+                            out.println(notFoundResponse());
+                        }
                     }
                 }
             }
@@ -74,19 +76,25 @@ public class SimpleHttpServer {
         Map<String, String> queryParams = parseQueryParams(requesturi.getQuery());
         Request req = new Request(m, requesturi.getPath(), queryParams, null);
         String resp = handler.handle(req);
-        out.println(resp);
+        
+        String httpResponse = "HTTP/1.1 200 OK\r\n" +
+                             "Content-Type: text/plain\r\n" +
+                             "Content-Length: " + resp.length() + "\r\n" +
+                             "\r\n" +
+                             resp;
+        out.print(httpResponse);
+        out.flush();
         return true;
     }
 
-    private static void serveStaticFile(URI requesturi, PrintWriter out) throws IOException {
+    private static boolean serveStaticFile(URI requesturi, PrintWriter out) throws IOException {
         String staticPath = requesturi != null ? requesturi.getPath() : "/";
         if (staticPath.equals("/") || staticPath.isEmpty()) {
             staticPath = "/index.html";
         }
         File file = new File(staticBaseFolder + staticPath);
         if (!file.exists() || file.isDirectory()) {
-            out.println(notFoundResponse());
-            return;
+            return false; 
         }
         String contentType = getContentType(staticPath);
         String header = "HTTP/1.1 200 OK\r\n" +
@@ -101,6 +109,7 @@ public class SimpleHttpServer {
                 out.write(new String(buffer, 0, bytesRead));
             }
         }
+        return true; 
     }
 
     private static Map<String, String> parseQueryParams(String query) {

@@ -17,4 +17,8 @@ public class BeanContainer {
     public boolean containsBean(Class<?> clazz) {
         return beans.containsKey(clazz);
     }
+
+    public boolean hasBean(Class<?> beanClass) {
+        return beans.containsKey(beanClass);
+    }
 }
