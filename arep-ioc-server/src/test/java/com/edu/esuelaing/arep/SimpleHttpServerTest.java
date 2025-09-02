@@ -19,7 +19,7 @@ public class SimpleHttpServerTest {
     static void startServer() throws Exception {
         serverThread = new Thread(() -> {
             try {
-                Main.main(new String[] {});
+                Main.main(new String[] {"java.lang.String"});
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -31,18 +31,18 @@ public class SimpleHttpServerTest {
 
     @AfterAll
     static void stopServer() throws Exception {
-        // Logic to stop the server if necessary
+        
     }
 
     @Test
     void helloEndpointShouldReturnGreeting() throws Exception {
-        String restResponse = httpGet("http://localhost:35000/app/hello?name=Test");
+        String restResponse = httpGet("http://localhost:8080/app/hello?name=Test");
         assertTrue(restResponse.contains("Hola, Test") || restResponse.contains("Hola,Test"), restResponse);
     }
 
     @Test
     void indexShouldBeServed() throws Exception {
-        String staticResponse = httpGet("http://localhost:35000/index.html");
+        String staticResponse = httpGet("http://localhost:8080/index.html");
         assertTrue(staticResponse.contains("<html") || staticResponse.contains("DOCTYPE"), staticResponse);
     }
 

@@ -22,7 +22,10 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         const name = document.getElementById('postname').value;
         greetingResponseDiv.textContent = 'Cargando...';
-        fetch(`/greeting?name=${encodeURIComponent(name)}`, { method: 'GET' })
+        
+        fetch(`/greeting?name=${encodeURIComponent(name)}`, { 
+            method: 'POST'
+        })
             .then(response => {
                 if (!response.ok) throw new Error('Error en la respuesta del servidor');
                 return response.text();
