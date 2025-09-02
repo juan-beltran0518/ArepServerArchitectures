@@ -36,8 +36,8 @@ public class SimpleHttpServer {
             System.out.println("Server started on port " + port);
             while (true) {
                 try (Socket clientSocket = serverSocket.accept();
-                     BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                     PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
+                        BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                        PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
 
                     String inputLine;
                     boolean isFirstLine = true;
@@ -56,7 +56,7 @@ public class SimpleHttpServer {
                         }
                     }
 
-                    if (!serveStaticFile(requesturi, out)) {
+                    if (!serveStaticFile(requesturi, clientSocket)) {
                         if (!handleRoute(method, requesturi, out)) {
                             out.println(notFoundResponse());
                         }
@@ -67,54 +67,62 @@ public class SimpleHttpServer {
     }
 
     private static boolean handleRoute(String method, URI requesturi, PrintWriter out) {
-        if (requesturi == null || method == null) return false;
+        if (requesturi == null || method == null)
+            return false;
         String m = method.toUpperCase();
         Map<String, RouteHandler> routes = "GET".equals(m) ? getRoutes : postRoutes;
         RouteHandler handler = routes.get(requesturi.getPath());
-        if (handler == null) return false;
+        if (handler == null)
+            return false;
 
         Map<String, String> queryParams = parseQueryParams(requesturi.getQuery());
         Request req = new Request(m, requesturi.getPath(), queryParams, null);
         String resp = handler.handle(req);
-        
+
         String httpResponse = "HTTP/1.1 200 OK\r\n" +
-                             "Content-Type: text/plain\r\n" +
-                             "Content-Length: " + resp.length() + "\r\n" +
-                             "\r\n" +
-                             resp;
+                "Content-Type: text/plain\r\n" +
+                "Content-Length: " + resp.length() + "\r\n" +
+                "\r\n" +
+                resp;
         out.print(httpResponse);
         out.flush();
         return true;
     }
 
-    private static boolean serveStaticFile(URI requesturi, PrintWriter out) throws IOException {
+    private static boolean serveStaticFile(URI requesturi, Socket clientSocket) throws IOException {
         String staticPath = requesturi != null ? requesturi.getPath() : "/";
         if (staticPath.equals("/") || staticPath.isEmpty()) {
             staticPath = "/index.html";
         }
-        File file = new File(staticBaseFolder + staticPath);
-        if (!file.exists() || file.isDirectory()) {
-            return false; 
-        }
-        String contentType = getContentType(staticPath);
-        String header = "HTTP/1.1 200 OK\r\n" +
-                "Content-Type: " + contentType + "\r\n" +
-                "Content-Length: " + file.length() + "\r\n" +
-                "\r\n";
-        out.print(header);
-        try (FileInputStream fis = new FileInputStream(file)) {
-            byte[] buffer = new byte[4096];
-            int bytesRead;
-            while ((bytesRead = fis.read(buffer)) != -1) {
-                out.write(new String(buffer, 0, bytesRead));
+
+        String resourcePath = "/public" + staticPath;
+        try (java.io.InputStream inputStream = SimpleHttpServer.class.getResourceAsStream(resourcePath)) {
+            if (inputStream == null) {
+                return false;
             }
+
+            byte[] fileContent = inputStream.readAllBytes();
+
+            String contentType = getContentType(staticPath);
+            String header = "HTTP/1.1 200 OK\r\n" +
+                    "Content-Type: " + contentType + "\r\n" +
+                    "Content-Length: " + fileContent.length + "\r\n" +
+                    "\r\n";
+
+            clientSocket.getOutputStream().write(header.getBytes());
+            clientSocket.getOutputStream().write(fileContent);
+            clientSocket.getOutputStream().flush();
+
+            return true;
+        } catch (IOException e) {
+            return false;
         }
-        return true; 
     }
 
     private static Map<String, String> parseQueryParams(String query) {
         Map<String, String> queryParams = new HashMap<>();
-        if (query == null || query.isEmpty()) return queryParams;
+        if (query == null || query.isEmpty())
+            return queryParams;
         for (String param : query.split("&")) {
             String[] kv = param.split("=", 2);
             queryParams.put(kv[0], kv.length == 2 ? kv[1] : "");
@@ -123,11 +131,22 @@ public class SimpleHttpServer {
     }
 
     private static String getContentType(String path) {
-        if (path.endsWith(".html")) return "text/html";
-        if (path.endsWith(".css")) return "text/css";
-        if (path.endsWith(".js")) return "application/javascript";
-        if (path.endsWith(".png")) return "image/png";
-        if (path.endsWith(".jpg") || path.endsWith(".jpeg")) return "image/jpeg";
+        if (path.endsWith(".html"))
+            return "text/html";
+        if (path.endsWith(".css"))
+            return "text/css";
+        if (path.endsWith(".js"))
+            return "application/javascript";
+        if (path.endsWith(".png"))
+            return "image/png";
+        if (path.endsWith(".jpg") || path.endsWith(".jpeg"))
+            return "image/jpeg";
+        if (path.endsWith(".gif"))
+            return "image/gif";
+        if (path.endsWith(".svg"))
+            return "image/svg+xml";
+        if (path.endsWith(".ico"))
+            return "image/x-icon";
         return "text/plain";
     }
 
