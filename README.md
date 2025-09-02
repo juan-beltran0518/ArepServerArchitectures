@@ -7,45 +7,52 @@ El proyecto AREP IoC Server es un servidor web implementado en Java que permite 
 El proyecto está organizado de la siguiente manera:
 
 ```
-arep-ioc-server
-├── src
-│   ├── main
-│   │   ├── java
-│   │   │   └── com
-│   │   │       └── edu
-│   │   │           └── esuelaing
-│   │   │               └── arep
-│   │   │                   ├── annotations
-│   │   │                   │   ├── RestController.java
-│   │   │                   │   ├── GetMapping.java
-│   │   │                   │   └── RequestParam.java
-│   │   │                   ├── ioc
-│   │   │                   │   ├── MicroSpringBoot.java
-│   │   │                   │   ├── BeanContainer.java
-│   │   │                   │   └── ReflectionLoader.java
-│   │   │                   ├── controllers
-│   │   │                   │   ├── HelloController.java
-│   │   │                   │   └── GreetingController.java
-│   │   │                   ├── SimpleHttpServer.java
-│   │   │                   ├── RouteHandler.java
-│   │   │                   ├── Request.java
-│   │   │                   └── Main.java
-│   │   └── resources
-│   │       └── public
-│   │           ├── index.html
-│   │           ├── style.css
-│   │           ├── app.js
-│   │           └── test-image.jpg
-│   └── test
-│       └── java
-│           └── com
-│               └── edu
-│                   └── esuelaing
-│                       └── arep
-│                           ├── SimpleHttpServerTest.java
-│                           └── IoCSampleTest.java
-├── pom.xml
-└── README.md
+ArepServerArchitectures
+├── .DS_Store
+├── .git/
+├── .gitignore
+├── README.md
+├── server.log
+└── arep-ioc-server/
+    ├── pom.xml
+    ├── run.sh
+    └── src/
+        ├── main/
+        │   ├── java/
+        │   │   └── com/
+        │   │       └── edu/
+        │   │           └── esuelaing/
+        │   │               └── arep/
+        │   │                   ├── annotations/
+        │   │                   │   ├── GetMapping.java
+        │   │                   │   ├── PostMapping.java
+        │   │                   │   ├── RequestParam.java
+        │   │                   │   └── RestController.java
+        │   │                   ├── controllers/
+        │   │                   │   ├── GreetingController.java
+        │   │                   │   └── HelloController.java
+        │   │                   ├── ioc/
+        │   │                   │   ├── BeanContainer.java
+        │   │                   │   ├── MicroSpringBoot.java
+        │   │                   │   └── ReflectionLoader.java
+        │   │                   ├── Main.java
+        │   │                   ├── Request.java
+        │   │                   ├── RouteHandler.java
+        │   │                   └── SimpleHttpServer.java
+        │   └── resources/
+        │       └── public/
+        │           ├── app.js
+        │           ├── index.html
+        │           ├── style.css
+        │           └── test-image.jpg
+        └── test/
+            └── java/
+                └── com/
+                    └── edu/
+                        └── esuelaing/
+                            └── arep/
+                                ├── IoCSampleTest.java
+                                └── SimpleHttpServerTest.java
 ```
 
 ## Requisitos de Configuración
@@ -55,7 +62,7 @@ arep-ioc-server
 ## Instrucciones de Uso
 1. **Clonar el Repositorio**:
    ```bash
-   git clone <URL_DEL_REPOSITORIO>
+   git clone https://github.com/juan-beltran0518/ArepServerArchitectures.git
    cd arep-ioc-server
    ```
 
@@ -72,15 +79,17 @@ arep-ioc-server
    ```
 
 4. **Acceder a la Aplicación Web**:
-   Abre tu navegador y dirígete a `http://localhost:35000` para ver la aplicación en funcionamiento.
+   Abre tu navegador y dirígete a `http://localhost:8080` para ver la aplicación en funcionamiento.
+
+## Pruebas
+- http://localhost:8080/api/hello
+- http://localhost:8080
+- http://localhost:8080/app/hello?name=Beltran
+- http://localhost:8080/greeting
+- http://localhost:8080/app/hello?name
 
 ## Funcionalidades
 - **Manejo de Rutas**: El servidor puede manejar rutas definidas mediante anotaciones como `@GetMapping`.
 - **Inversión de Control**: Permite la carga de componentes POJO a través de un marco IoC.
 - **Reflexión**: Utiliza reflexión para cargar clases y sus anotaciones dinámicamente.
 
-## Contribuciones
-Las contribuciones son bienvenidas. Si deseas contribuir, por favor abre un issue o envía un pull request.
-
-## Licencia
-Este proyecto está bajo la Licencia MIT. Consulta el archivo LICENSE para más detalles.
